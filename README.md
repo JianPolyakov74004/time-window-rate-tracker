@@ -33,3 +33,10 @@ When you need to show a rolling rate (requests/sec, events/min) the natural unit
 ## The awkward edge
 
 The clock is taken as a constructor argument so tests stay deterministic, but nothing forces it to be monotonic. A clock that moves backwards will record events into whichever window it lands on, and `rate()` will treat any window ahead of the clock as contributing zero. This is a deliberate choice: rejecting a backwards-moving clock would break callers who legitimately want to replay events against an earlier window using the same tracker. If you need strict monotonic enforcement, wrap the clock yourself before passing it in.
+
+## Design notes
+
+The window stores values eagerly rather than keeping running aggregates. Running
+sums drift with floating point over long streams, and recomputing from a small
+buffer is cheap enough that the drift is not worth the speed.
+
